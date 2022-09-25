@@ -9,9 +9,12 @@ t_suits = ["H", "S", "D", "C"]
 t_ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K"] # note: i put T instead of 10 because I want every card to be displayed as [SR] (SuitRank)
 t_colours = {
     0 : "\033[31m", # red
-    1 : "\033[35m", # blue
-    2 : "\033[97m", # white
-    3 : "\033[90m"  # gray
+    1 : "\033[34m", # blue
+    2 : "\033[91m", # light red
+    3 : "\033[94m", # light blue
+    10 : "\033[97m", # white
+    11 : "\033[90m",  # gray
+    12 : "\033[32m"   # green
 }
 
 nTotalUnits = 8
@@ -30,10 +33,10 @@ def display():
         row = ""
         for col in t_columns:
             if i < len(col) - 1:
-                row += t_colours[3] + "XX" + t_colours[2]
+                row += t_colours[11] + "XX" + t_colours[10]
             elif i == len(col) - 1:
-                row += t_colours[col[i].suit % 2] + t_suits[col[i].suit] + t_colours[2]
-                row += t_ranks[col[i].rank]
+                row += t_colours[col[i].suit] + t_suits[col[i].suit] + t_colours[10]
+                row += t_colours[12] + t_ranks[col[i].rank] + t_colours[10]
             else:
                 row += "  "
             row += " "
