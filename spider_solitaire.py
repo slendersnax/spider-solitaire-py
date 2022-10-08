@@ -168,6 +168,10 @@ while not gameOver():
         while t_columns[coordFrom[0]][coordFrom[1]].hidden:
             coordFrom = getInput("Invalid input, card is still hidden. Input again: ")
             coordFrom = [int(c) - 1 for c in coordFrom]
+        
+        for card in range(coordFrom[1], len(t_columns[coordFrom[0]])):
+            if card.suit != t_columns[coordFrom[0]][coordFrom[1]].suit:
+                # no moving because card series isn't of the same suit
 
     # coordinates TO where we move the cards
     # first col and then row, more intuitive imo
@@ -187,8 +191,9 @@ while not gameOver():
             coordTo = input("Invalid input, input col within bounds: ")
 
     coordTo = int(coordTo) - 1
-    # checking that the suits are matching and the ranks are okay
-    if t_columns[coordTo][-1].suit == t_columns[coordFrom[0]][coordFrom[1]].suit or t_columns[coordTo][-1].rank - 1 == t_columns[coordFrom[0]][coordFrom[1]].rank:
+    # in order to move a series of cards to another, the series must be of the same suit
+    # and the first in the series must be a rank below the card where we want to move to
+    if t_columns[coordTo][-1].rank - 1 == t_columns[coordFrom[0]][coordFrom[1]].rank:
         # note: we're always moving the cards from that row because as we pop one the next one moves into its place, the same row
         for i in range(coordFrom[1], len(t_columns[coordFrom[0]])):
             t_columns[coordTo].append(t_columns[coordFrom[0]].pop(coordFrom[1]))
@@ -197,5 +202,23 @@ while not gameOver():
     for col in t_columns:
         if len(col) > 0:
             col[-1].hidden = False
+
+    # checking for completed units
+    for col in t_columns:
+        nContinuous = 1
+        for i in range(len(col) - 1):
+            # checking if suits are same and ranks are in order
+            if not col[i].hidden and col[i].suit == col[i + 1].suit and col[i].rank - 1 == col[i + 1].rank:
+                nContinuous += 1
+            else:
+                nContinuous = 0
+
+        if nContinuous == len(t_ranks): # t_ranks contains every rank once - a unit
+            # if there is a unit, we take it out
+            # a unit's end is at the end of the list, so we can just pop the last cards 13 times
+            for i in range(len(t_ranks)):
+                col.pop()
+
+            nCompletedUnits += 1
 
     display()
