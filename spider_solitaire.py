@@ -6,6 +6,19 @@ class Card:
         self.rank = rank
         self.hidden = True
 
+class Error:
+    def __init__(self):
+        self.bIsError = False
+        self.msg = ""
+    
+    def signalError(self, _msg):
+        self.bIsError = True
+        self.msg =  _msg
+    
+    def clearError(self):
+        self.bIsError = False
+        self.msg = ""
+
 t_suits = ["H", "S", "D", "C"]
 t_ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K"] # note: i put T instead of 10 because I want every card to be displayed as [SR] (SuitRank)
 t_colours = {
@@ -69,7 +82,8 @@ def display():
     print("")
     print("Completed Units: {}".format(nCompletedUnits))
     print("Deals: {}".format(nDeals))
-    print("Input required coordinate, or 0 for helpdeck, 1 to give up")
+    # make instructions screen
+    # x to give up, d for deal
 
 # trim the whitespace at the edges, split by space to get each separate coordinate
 # subtract one because list indexes begin at 0, input begins at 1
@@ -84,7 +98,7 @@ def gameOver():
 # this is where the game itself begins -------------------------------------------------------------------------------------------
 
 nCompletedUnits = 0
-nDeals = nTotalDeals
+nDeals = nTotalDeals # is the same as len(t_deals), do we really need it? - yes, as it is right now
 
 clearScreen()
 print("How many suits do you want to play with? \nOptions are: one (1), two (2), or four (4)")
@@ -127,9 +141,10 @@ while len(t_allCards):
 for col in t_columns:
     col[-1].hidden = False
 
-# gameloop
+# gameloop ---------------------------------------------------------------------------------------------------------------
 display()
 bUsedDeal = False
+b_s = Error() # because errors are bull_shit B) yeeeaahhhhhh
 
 while not gameOver():
     if bUsedDeal:
@@ -138,87 +153,97 @@ while not gameOver():
         else:
             print("No more deals")
         bUsedDeal = False
-    # coordinates FROM where we move the cards
-    # first col and then row, more intuitive imo
+
     coordFrom = getInput("Input col, row to move from: ")
-
-    if coordFrom == ['0']:
-        bUsedDeal = True
-        if nDeals > 0:
-            nDeals -= 1
-            # use deal here
-    elif coordFrom == ['1']:
-        print("player gave up")
-        break
-    else:
-        # we check, in order:
-        # that input isn't an empty string
-        # that transformed into an array it has a length of two
-        # that column number is within bounds
-        # that row number is within bounds in the respective column
-        print(nTotalColumns, int(coordFrom[0]) - 1)
-        while coordFrom == [''] or len(coordFrom) != 2 or\
-         int(coordFrom[0]) - 1 >= nTotalColumns or int(coordFrom[0]) - 1 < 0 or\
-         int(coordFrom[1]) - 1 >= len(t_columns[int(coordFrom[0]) - 1]) or int(coordFrom[1]) - 1 < 0:
-            coordFrom = getInput("Invalid input, input both col and row within bounds: ")
-        
-        coordFrom = [int(c) - 1 for c in coordFrom]
-        print(coordFrom, t_suits[t_columns[coordFrom[0]][coordFrom[1]].suit], t_ranks[t_columns[coordFrom[0]][coordFrom[1]].rank])
-        
-        while t_columns[coordFrom[0]][coordFrom[1]].hidden:
-            coordFrom = getInput("Invalid input, card is still hidden. Input again: ")
-            coordFrom = [int(c) - 1 for c in coordFrom]
-        
-        for card in range(coordFrom[1], len(t_columns[coordFrom[0]])):
-            if card.suit != t_columns[coordFrom[0]][coordFrom[1]].suit:
-                # no moving because card series isn't of the same suit
-
-    # coordinates TO where we move the cards
-    # first col and then row, more intuitive imo
     coordTo = input("Input column to move to: ")
+    b_s.signalError("")
 
-    if coordTo == '0':
+    if coordFrom == ['d'] or coordTo == 'd':
         bUsedDeal = True
         if nDeals > 0:
             nDeals -= 1
-            # use deal here
-    elif coordTo == '1':
-        print("player gave up")
+            for col in t_columns: # we deal by taking the last card from the last deal and adding it to a column
+                col.append(t_deals[-1].pop())
+            
+            t_deals.pop(-1)       # after that we delete the deal
+    elif coordFrom == ['x']:
+        print("Player gave up")
         break
-    else:
-        print(coordTo, nTotalColumns)
-        while coordTo == '' or int(coordTo) >= nTotalColumns or int(coordTo) <= 0:
-            coordTo = input("Invalid input, input col within bounds: ")
+    # condition checking starts here
+    # see error messages for what the conditions are, though i'll
+    # put some comments where it's more annoying to figure out
+    elif len(coordFrom) == 2:
+        if int(coordFrom[0]) - 1 in [num for num in range(nTotalColumns)]:
+            nMaxRow = len(t_columns[int(coordFrom[0]) - 1])
+            if int(coordFrom[1]) - 1 in [num for num in range(nMaxRow)]:
+                # we transform the inputs into numerical values here for easier use further on
+                coordFrom = [int(c) - 1 for c in coordFrom]
+                if not t_columns[coordFrom[0]][coordFrom[1]].hidden:
+                    if int(coordTo) - 1 in [num for num in range(nTotalColumns)]:
+                        coordTo = int(coordTo) - 1
+                        bSameSuit = True
+                        for i in range(coordFrom[1], len(t_columns[coordFrom[0]])):
+                            if t_columns[coordFrom[0]][i].suit != t_columns[coordFrom[0]][coordFrom[1]].suit:
+                                bSameSuit = False
+                                break
 
-    coordTo = int(coordTo) - 1
-    # in order to move a series of cards to another, the series must be of the same suit
-    # and the first in the series must be a rank below the card where we want to move to
-    if t_columns[coordTo][-1].rank - 1 == t_columns[coordFrom[0]][coordFrom[1]].rank:
-        # note: we're always moving the cards from that row because as we pop one the next one moves into its place, the same row
+                        if bSameSuit:
+                            bInOrder = True
+                            if coordFrom[1] < nMaxRow - 1: # aka we're moving a series of cards
+                                for i in range(coordFrom[1] + 1, len(t_columns[coordFrom[0]])):
+                                    if t_columns[coordFrom[0]][coordFrom[1]].rank - 1 != t_columns[coordFrom[0]][i].rank:
+                                        bInOrder = False
+                                        break
+                            
+                            if bInOrder:
+                                if t_columns[coordFrom[0]][coordFrom[1]].rank + 1 == t_columns[coordTo][-1].rank or len(t_columns[coordTo]) == 0:
+                                    b_s.clearError()
+                                else:
+                                    b_s.signalError("The rank of the topmost card to be moved must be 1 below the bottom card of the column to be moved to")
+                            else:
+                                b_s.signalError("Card(s) to move must be in direct descending order")
+                        else:
+                            b_s.signalError("Card(s) to move must all be of the same suit")
+                    else:
+                        b_s.signalError("Column to move to must be a number between 1 and {}".format(nTotalColumns))
+                else:
+                    b_s.signalError("Card(s) to move must not be hidden")
+            else:
+                b_s.signalError("Card/row to move from must be a number between 1 and respective column's length: {}".format(nMaxRow))
+        else:
+            b_s.signalError("Column to move from must be a number between 1 and {}".format(nTotalColumns + 1))
+    else:
+        b_s.signalError("There must be two inputs - column and row")
+
+    # moving the card(s)
+    if not b_s.bIsError:
         for i in range(coordFrom[1], len(t_columns[coordFrom[0]])):
             t_columns[coordTo].append(t_columns[coordFrom[0]].pop(coordFrom[1]))
 
-    # revealing the bottom cards if they haven't been revealed yet
-    for col in t_columns:
-        if len(col) > 0:
-            col[-1].hidden = False
+        # checking for completed units
+        for col in t_columns:
+            nContinuous = 1
+            for i in range(len(col) - 1):
+                # checking if suits are same and ranks are in order
+                if not col[i].hidden and col[i].suit == col[i + 1].suit and col[i].rank - 1 == col[i + 1].rank:
+                    nContinuous += 1
+                else:
+                    nContinuous = 0
 
-    # checking for completed units
-    for col in t_columns:
-        nContinuous = 1
-        for i in range(len(col) - 1):
-            # checking if suits are same and ranks are in order
-            if not col[i].hidden and col[i].suit == col[i + 1].suit and col[i].rank - 1 == col[i + 1].rank:
-                nContinuous += 1
-            else:
-                nContinuous = 0
+            if nContinuous == len(t_ranks): # t_ranks contains every rank once - a unit
+                # if there is a unit, we take it out
+                # a unit's end is at the end of the list, so we can just pop the last cards 13 times
+                for i in range(len(t_ranks)):
+                    col.pop()
 
-        if nContinuous == len(t_ranks): # t_ranks contains every rank once - a unit
-            # if there is a unit, we take it out
-            # a unit's end is at the end of the list, so we can just pop the last cards 13 times
-            for i in range(len(t_ranks)):
-                col.pop()
+                nCompletedUnits += 1
 
-            nCompletedUnits += 1
+        # revealing the bottom cards if they haven't been revealed yet
+        for col in t_columns:
+            if len(col) > 0:
+                col[-1].hidden = False
 
     display()
+    if b_s.bIsError:
+        print("{}{}{}".format(t_colours[0], b_s.msg, t_colours[10]))
+        print("Input again.")
