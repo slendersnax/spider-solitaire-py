@@ -6,16 +6,19 @@ class Card:
         self.rank = rank
         self.hidden = True
 
+    def same_suit(self, otherCard):
+        return self.suit == otherCard.suit
+
 class Error:
     def __init__(self):
         self.bIsError = False
         self.msg = ""
     
-    def signalError(self, _msg):
+    def signal_error(self, _msg):
         self.bIsError = True
-        self.msg =  _msg
+        self.msg = _msg
     
-    def clearError(self):
+    def clear_error(self):
         self.bIsError = False
         self.msg = ""
 
@@ -65,30 +68,11 @@ def display():
             row += " "
         print(row)
 
-    '''print("")
-    for i in range(nLongestColumn):
-        s = str(i + 1)
-        row = str(i + 1) + " " * (3 - len(s))
-        n = 0
-        for col in t_columns:
-            if i >= len(col):
-                row += "  "
-            else:
-                row += t_colours[11] + str(n) + str(i) + t_colours[10]
-                n += 1
-            row += " "
-        print(row)'''
-
     print("")
     print("Completed Units: {}".format(nCompletedUnits))
     print("Deals: {}".format(nDeals))
     # make instructions screen
     # x to give up, d for deal
-
-# trim the whitespace at the edges, split by space to get each separate coordinate
-# subtract one because list indexes begin at 0, input begins at 1
-def getInput(inputText):
-    return [c for c in input(inputText).strip().split(" ")]
 
 def gameOver():
     if nCompletedUnits == nTotalUnits:
@@ -111,23 +95,23 @@ while nNumberOfSuits not in [1, 2, 4]:
 
 # based on the number of suits chosen we run through them enough times
 # to get an equal amount of units of each available suit then generate cards
-# we take the indexes of the suits and ranks for easier comparison between cards
+# we take the indexes of the suits and ranks (numbers) for easier comparison between cards
 for i in range(nNumberOfSuits):                     
     for j in range(nTotalUnits // nNumberOfSuits):
         for r in range(len(t_ranks)):
             t_allCards.append(Card(i, r))
 
+# shuffling all the cards
 random.shuffle(t_allCards)
 
-# adding cards to the deals
+# adding cards to the deals, 10 card in each deal
 for i in range(nTotalDeals):
     t_deals.append([])
     for j in range(10):
-        # to increase randomness, we take 10 random cards for the deal decks
         t_deals[i].append(t_allCards.pop(random.randint(0, len(t_allCards) - 1)))
 
 # adding cards to the playing columns
-# first we create a two-dimensional array by appending arrays to t_columns
+# first we create the columns
 for i in range(nTotalColumns):
     t_columns.append([])
 
@@ -154,24 +138,25 @@ while not gameOver():
             print("No more deals")
         bUsedDeal = False
 
-    coordFrom = getInput("Input col, row to move from: ")
+    coordFrom = [c for c in input("Input col, row to move from: ").strip().split(" ")]
     coordTo = input("Input column to move to: ")
-    b_s.signalError("")
+    b_s.signal_error("")
 
+    # dealing cards
     if coordFrom == ['d'] or coordTo == 'd':
         bUsedDeal = True
         if nDeals > 0:
             nDeals -= 1
-            for col in t_columns: # we deal by taking the last card from the last deal and adding it to a column
+            for col in t_columns:
                 col.append(t_deals[-1].pop())
             
-            t_deals.pop(-1)       # after that we delete the deal
+            t_deals.pop(-1)
     elif coordFrom == ['x']:
         print("Player gave up")
         break
     # condition checking starts here
-    # see error messages for what the conditions are, though i'll
-    # put some comments where it's more annoying to figure out
+    # see error messages for what the conditions are
+    # FIX: better/more readable way for this? pretty diff to check if-else pairs
     elif len(coordFrom) == 2:
         if int(coordFrom[0]) - 1 in [num for num in range(nTotalColumns)]:
             nMaxRow = len(t_columns[int(coordFrom[0]) - 1])
@@ -189,7 +174,7 @@ while not gameOver():
 
                         if bSameSuit:
                             bInOrder = True
-                            if coordFrom[1] < nMaxRow - 1: # aka we're moving a series of cards
+                            if coordFrom[1] < nMaxRow - 1: # aka we're moving a series of cards, not just one
                                 for i in range(coordFrom[1] + 1, len(t_columns[coordFrom[0]])):
                                     if t_columns[coordFrom[0]][coordFrom[1]].rank - 1 != t_columns[coordFrom[0]][i].rank:
                                         bInOrder = False
@@ -197,23 +182,23 @@ while not gameOver():
                             
                             if bInOrder:
                                 if t_columns[coordFrom[0]][coordFrom[1]].rank + 1 == t_columns[coordTo][-1].rank or len(t_columns[coordTo]) == 0:
-                                    b_s.clearError()
+                                    b_s.clear_error()
                                 else:
-                                    b_s.signalError("The rank of the topmost card to be moved must be 1 below the bottom card of the column to be moved to")
+                                    b_s.signal_error("The rank of the topmost card to be moved must be 1 below the bottom card of the column to be moved to")
                             else:
-                                b_s.signalError("Card(s) to move must be in direct descending order")
+                                b_s.signal_error("Card(s) to move must be in direct descending order")
                         else:
-                            b_s.signalError("Card(s) to move must all be of the same suit")
+                            b_s.signal_error("Card(s) to move must all be of the same suit")
                     else:
-                        b_s.signalError("Column to move to must be a number between 1 and {}".format(nTotalColumns))
+                        b_s.signal_error("Column to move to must be a number between 1 and {}".format(nTotalColumns))
                 else:
-                    b_s.signalError("Card(s) to move must not be hidden")
+                    b_s.signal_error("Card(s) to move must not be hidden")
             else:
-                b_s.signalError("Card/row to move from must be a number between 1 and respective column's length: {}".format(nMaxRow))
+                b_s.signal_error("Card/row to move from must be a number between 1 and respective column's length: {}".format(nMaxRow))
         else:
-            b_s.signalError("Column to move from must be a number between 1 and {}".format(nTotalColumns + 1))
+            b_s.signal_error("Column to move from must be a number between 1 and {}".format(nTotalColumns + 1))
     else:
-        b_s.signalError("There must be two inputs - column and row")
+        b_s.signal_error("There must be two inputs - column and row")
 
     # moving the card(s)
     if not b_s.bIsError:
@@ -222,17 +207,17 @@ while not gameOver():
 
         # checking for completed units
         for col in t_columns:
-            nContinuous = 1
+            nSeriesLen = 1
             for i in range(len(col) - 1):
                 # checking if suits are same and ranks are in order
                 if not col[i].hidden and col[i].suit == col[i + 1].suit and col[i].rank - 1 == col[i + 1].rank:
-                    nContinuous += 1
+                    nSeriesLen += 1
                 else:
-                    nContinuous = 0
+                    nSeriesLen = 0
 
-            if nContinuous == len(t_ranks): # t_ranks contains every rank once - a unit
-                # if there is a unit, we take it out
-                # a unit's end is at the end of the list, so we can just pop the last cards 13 times
+            # we have a completed unit
+            if nSeriesLen == len(t_ranks):
+                # a unit's end is at the end of the list, so we can just pop the last card 13 times
                 for i in range(len(t_ranks)):
                     col.pop()
 
