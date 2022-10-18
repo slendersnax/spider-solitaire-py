@@ -140,11 +140,12 @@ while not gameOver():
 
     coordFrom = [c for c in input("Input col, row to move from: ").strip().split(" ")]
     coordTo = input("Input column to move to: ")
-    b_s.signal_error("")
+    b_s.signal_error("") # automatically error is TRUE, if we pass all the checks, error becomes FALSE
 
     # dealing cards
     if coordFrom == ['d'] or coordTo == 'd':
         bUsedDeal = True
+        b_s.clear_error()
         if nDeals > 0:
             nDeals -= 1
             for col in t_columns:
@@ -175,8 +176,8 @@ while not gameOver():
                         if bSameSuit:
                             bInOrder = True
                             if coordFrom[1] < nMaxRow - 1: # aka we're moving a series of cards, not just one
-                                for i in range(coordFrom[1] + 1, len(t_columns[coordFrom[0]])):
-                                    if t_columns[coordFrom[0]][coordFrom[1]].rank - 1 != t_columns[coordFrom[0]][i].rank:
+                                for i in range(coordFrom[1], len(t_columns[coordFrom[0]]) - 1):
+                                    if t_columns[coordFrom[0]][i].rank - 1 != t_columns[coordFrom[0]][i + 1].rank:
                                         bInOrder = False
                                         break
                             
@@ -200,8 +201,8 @@ while not gameOver():
     else:
         b_s.signal_error("There must be two inputs - column and row")
 
-    # moving the card(s)
     if not b_s.bIsError:
+        # moving the card(s)
         for i in range(coordFrom[1], len(t_columns[coordFrom[0]])):
             t_columns[coordTo].append(t_columns[coordFrom[0]].pop(coordFrom[1]))
 
@@ -223,10 +224,10 @@ while not gameOver():
 
                 nCompletedUnits += 1
 
-        # revealing the bottom cards if they haven't been revealed yet
-        for col in t_columns:
-            if len(col) > 0:
-                col[-1].hidden = False
+    # revealing the bottom cards if they haven't been revealed yet
+    for col in t_columns:
+        if len(col) > 0:
+            col[-1].hidden = False
 
     display()
     if b_s.bIsError:
