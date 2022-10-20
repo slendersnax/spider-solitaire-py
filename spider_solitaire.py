@@ -53,9 +53,10 @@ def display():
     for i in range(nTotalColumns):
         row += t_colours[10] + str(i + 1) + "  "
 
+    # here we print the cards
     print(row)
     for i in range(nLongestColumn):
-        s = str(i + 1)
+        s = str(i + 1)  # we display the row number at the beginning and end
         row = str(i + 1) + " " * (3 - len(s))
         for col in t_columns:
             if i >= len(col):
@@ -66,6 +67,7 @@ def display():
                 row += t_colours[col[i].suit] + t_suits[col[i].suit] + t_colours[10]
                 row += t_colours[12] + t_ranks[col[i].rank] + t_colours[10]
             row += " "
+        row += " " + str(i + 1)
         print(row)
 
     print("")
@@ -182,7 +184,7 @@ while not gameOver():
                                         break
                             
                             if bInOrder:
-                                if t_columns[coordFrom[0]][coordFrom[1]].rank + 1 == t_columns[coordTo][-1].rank or len(t_columns[coordTo]) == 0:
+                                if len(t_columns[coordTo]) == 0 or t_columns[coordFrom[0]][coordFrom[1]].rank + 1 == t_columns[coordTo][-1].rank:
                                     b_s.clear_error()
                                 else:
                                     b_s.signal_error("The rank of the topmost card to be moved must be 1 below the bottom card of the column to be moved to")
@@ -201,28 +203,28 @@ while not gameOver():
     else:
         b_s.signal_error("There must be two inputs - column and row")
 
-    if not b_s.bIsError:
+    if not b_s.bIsError and not bUsedDeal:
         # moving the card(s)
         for i in range(coordFrom[1], len(t_columns[coordFrom[0]])):
             t_columns[coordTo].append(t_columns[coordFrom[0]].pop(coordFrom[1]))
 
-        # checking for completed units
-        for col in t_columns:
-            nSeriesLen = 1
-            for i in range(len(col) - 1):
-                # checking if suits are same and ranks are in order
-                if not col[i].hidden and col[i].suit == col[i + 1].suit and col[i].rank - 1 == col[i + 1].rank:
-                    nSeriesLen += 1
-                else:
-                    nSeriesLen = 0
+    # checking for completed units
+    for col in t_columns:
+        nSeriesLen = 1
+        for i in range(len(col) - 1):
+            # checking if suits are same and ranks are in order
+            if not col[i].hidden and col[i].suit == col[i + 1].suit and col[i].rank - 1 == col[i + 1].rank:
+                nSeriesLen += 1
+            else:
+                nSeriesLen = 0
 
-            # we have a completed unit
-            if nSeriesLen == len(t_ranks):
-                # a unit's end is at the end of the list, so we can just pop the last card 13 times
-                for i in range(len(t_ranks)):
-                    col.pop()
+        # we have a completed unit
+        if nSeriesLen == len(t_ranks):
+            # a unit's end is at the end of the list, so we can just pop the last card 13 times
+            for i in range(len(t_ranks)):
+                col.pop()
 
-                nCompletedUnits += 1
+            nCompletedUnits += 1
 
     # revealing the bottom cards if they haven't been revealed yet
     for col in t_columns:
