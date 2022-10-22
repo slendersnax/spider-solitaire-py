@@ -146,19 +146,13 @@ def revealBottomCards(p_columns):
 def isInputError(coordFrom, coordTo):
     nColLength = len(t_columns[int(coordFrom[0]) - 1])
 
-    if len(coordFrom) == 2:
-        pass
-    else:
+    if len(coordFrom) != 2:
         return (True, "There must be two inputs - column and row")
 
-    if int(coordFrom[0]) - 1 in [num for num in range(nTotalColumns)]:
-        pass
-    else:
+    if int(coordFrom[0]) - 1 not in [num for num in range(nTotalColumns)]:
         return (True, "Column to move from must be a number between 1 and {}".format(nTotalColumns + 1))
             
-    if int(coordFrom[1]) - 1 in [num for num in range(nColLength)]:
-        pass
-    else:
+    if int(coordFrom[1]) - 1 not in [num for num in range(nColLength)]:
         return (True, "Card/row to move from must be a number between 1 and respective column's length: {}".format(nColLength))
 
     # we transform the inputs into numerical values here for easier use further on
@@ -167,11 +161,10 @@ def isInputError(coordFrom, coordTo):
     if t_columns[coordFrom[0]][coordFrom[1]].hidden:
         return (True, "Card(s) to move must not be hidden")
 
-    if int(coordTo) - 1 in [num for num in range(nTotalColumns)]:
-        pass
-    else:
+    if int(coordTo) - 1 not in [num for num in range(nTotalColumns)]:
         return(True, "Column to move to must be a number between 1 and {}".format(nTotalColumns))
 
+    #same here
     coordTo = int(coordTo) - 1
     bSameSuit = True
     for i in range(coordFrom[1], len(t_columns[coordFrom[0]])):
