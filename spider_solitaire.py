@@ -1,5 +1,8 @@
 import random, os
 
+# -------------------------------------------------------------------------
+# classes
+
 class Card:
     def __init__(self, suit, rank):
         self.suit = suit
@@ -22,6 +25,9 @@ class Error:
         self.bIsError = False
         self.msg = ""
 
+# -------------------------------------------------------------------------
+# global vars
+
 t_suits = ["H", "S", "D", "C"]
 t_ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K"] # note: i put T instead of 10 because I want every card to be displayed as [SR] (SuitRank)
 t_colours = {
@@ -41,6 +47,9 @@ nTotalDeals = 4
 t_columns = []
 t_deals = []     # the decks usually in the bottom right corner
 t_allCards = []  # where every card is before we sort them into decks
+
+# -------------------------------------------------------------------------
+# functions
 
 def clearScreen():
     os.system("cls" if os.name == "nt" else "clear")
@@ -76,58 +85,87 @@ def display():
     # make instructions screen
     # x to give up, d for deal
 
+# based on the number of suits chosen we run through them enough times
+# to get an equal amount of units of each available suit then generate cards
+# we take the indexes of the suits and ranks (numbers) for easier comparison between cards    
+def createAllCardsDeck(nNumberOfSuits):
+    p_allCards = [] # p_allCards instead of t_ to denote it's in a func
+
+    for i in range(nNumberOfSuits):                     
+        for j in range(nTotalUnits // nNumberOfSuits):
+            for r in range(len(t_ranks)):
+                p_allCards.append(Card(i, r))
+
+    return p_allCards
+
+# function for inputting number of suits
+def inputNumberOfSuits():
+    clearScreen()
+    print("How many suits do you want to play with? \nOptions are: one (1), two (2), or four (4)")
+    p_nNumberOfSuits = int(input())
+
+    while p_nNumberOfSuits not in [1, 2, 4]:
+        print("Not acceptable, you can only play with one (1), two (2), or four (4) suits")
+        print("Please enter the number of suits you wish to play with: ")
+        p_nNumberOfSuits = int(input())
+
+    return p_nNumberOfSuits
+
+# dealing the cards from the all-card deck to the 
+# columns and deals
+def dealCards(p_allCards):
+    p_deals = []
+    p_columns = []
+    # adding cards to the deals, 10 card in each deal
+    for i in range(nTotalDeals):
+        p_deals.append([])
+        for j in range(10):
+            p_deals[i].append(p_allCards.pop(random.randint(0, len(p_allCards) - 1)))
+
+    # adding cards to the playing columns
+    # first we create the columns
+    for i in range(nTotalColumns):
+        p_columns.append([])
+
+    # we loop over the columns and add a randomly popped card until we have no cards left
+    nCurrentCol = 0
+    while len(p_allCards):
+        p_columns[nCurrentCol].append(p_allCards.pop(random.randint(0, len(p_allCards) - 1)))
+        nCurrentCol = (nCurrentCol + 1) % nTotalColumns
+
+    return (p_deals, p_columns)
+
+def revealBottomCards(p_columns):
+    for col in p_columns:
+        if len(col) > 0:
+            col[-1].hidden = False
+
+    return p_columns
+
 def gameOver():
     if nCompletedUnits == nTotalUnits:
         return True
     return False
 
-# this is where the game itself begins -------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# this is where the game itself begins
 
 nCompletedUnits = 0
 nDeals = nTotalDeals # is the same as len(t_deals), do we really need it? - yes, as it is right now
 
-clearScreen()
-print("How many suits do you want to play with? \nOptions are: one (1), two (2), or four (4)")
-nNumberOfSuits = int(input())
-
-while nNumberOfSuits not in [1, 2, 4]:
-    print("Not acceptable, you can only play with one (1), two (2), or four (4) suits")
-    print("Please enter the number of suits you wish to play with: ")
-    nNumberOfSuits = int(input())
-
-# based on the number of suits chosen we run through them enough times
-# to get an equal amount of units of each available suit then generate cards
-# we take the indexes of the suits and ranks (numbers) for easier comparison between cards
-for i in range(nNumberOfSuits):                     
-    for j in range(nTotalUnits // nNumberOfSuits):
-        for r in range(len(t_ranks)):
-            t_allCards.append(Card(i, r))
+nNumberOfSuits = inputNumberOfSuits()
+t_allCards = createAllCardsDeck(nNumberOfSuits)
 
 # shuffling all the cards
 random.shuffle(t_allCards)
 
-# adding cards to the deals, 10 card in each deal
-for i in range(nTotalDeals):
-    t_deals.append([])
-    for j in range(10):
-        t_deals[i].append(t_allCards.pop(random.randint(0, len(t_allCards) - 1)))
+(t_deals, t_columns) = dealCards(t_allCards)
 
-# adding cards to the playing columns
-# first we create the columns
-for i in range(nTotalColumns):
-    t_columns.append([])
+t_columns = revealBottomCards(t_columns)
 
-# we loop over the columns and add a randomly popped card until we have no cards left
-nCurrentCol = 0
-while len(t_allCards):
-    t_columns[nCurrentCol].append(t_allCards.pop(random.randint(0, len(t_allCards) - 1)))
-    nCurrentCol = (nCurrentCol + 1) % nTotalColumns
+# -------------------------------------------------------------------------
+# gameloop
 
-# we reveal the cards at the bottom of every column
-for col in t_columns:
-    col[-1].hidden = False
-
-# gameloop ---------------------------------------------------------------------------------------------------------------
 display()
 bUsedDeal = False
 b_s = Error() # because errors are bull_shit B) yeeeaahhhhhh
@@ -226,10 +264,7 @@ while not gameOver():
 
             nCompletedUnits += 1
 
-    # revealing the bottom cards if they haven't been revealed yet
-    for col in t_columns:
-        if len(col) > 0:
-            col[-1].hidden = False
+    t_columns = revealBottomCards(t_columns)
 
     display()
     if b_s.bIsError:
