@@ -142,6 +142,63 @@ def revealBottomCards(p_columns):
 
     return p_columns
 
+# check the error messages for what we're checking in each condition
+def isInputError(coordFrom, coordTo):
+    nColLength = len(t_columns[int(coordFrom[0]) - 1])
+
+    if len(coordFrom) == 2:
+        pass
+    else:
+        return (True, "There must be two inputs - column and row")
+
+    if int(coordFrom[0]) - 1 in [num for num in range(nTotalColumns)]:
+        pass
+    else:
+        return (True, "Column to move from must be a number between 1 and {}".format(nTotalColumns + 1))
+            
+    if int(coordFrom[1]) - 1 in [num for num in range(nColLength)]:
+        pass
+    else:
+        return (True, "Card/row to move from must be a number between 1 and respective column's length: {}".format(nColLength))
+
+    # we transform the inputs into numerical values here for easier use further on
+    coordFrom = [int(c) - 1 for c in coordFrom]
+                
+    if t_columns[coordFrom[0]][coordFrom[1]].hidden:
+        return (True, "Card(s) to move must not be hidden")
+
+    if int(coordTo) - 1 in [num for num in range(nTotalColumns)]:
+        pass
+    else:
+        return(True, "Column to move to must be a number between 1 and {}".format(nTotalColumns))
+
+    coordTo = int(coordTo) - 1
+    bSameSuit = True
+    for i in range(coordFrom[1], len(t_columns[coordFrom[0]])):
+        if t_columns[coordFrom[0]][i].suit != t_columns[coordFrom[0]][coordFrom[1]].suit:
+            bSameSuit = False
+            break
+
+    if not bSameSuit:
+        return (True, "Card(s) to move must all be of the same suit")
+
+    bInOrder = True
+    if coordFrom[1] < nMaxRow - 1: # aka we're moving a series of cards, not just one
+        for i in range(coordFrom[1], len(t_columns[coordFrom[0]]) - 1):
+            if t_columns[coordFrom[0]][i].rank - 1 != t_columns[coordFrom[0]][i + 1].rank:
+                bInOrder = False
+                break
+        
+    if not bInOrder:
+        return (True, "Card(s) to move must be in direct descending order")
+
+    if len(t_columns[coordTo]) == 0 or t_columns[coordFrom[0]][coordFrom[1]].rank + 1 == t_columns[coordTo][-1].rank:
+        pass
+    else:
+        return (True, "The rank of the topmost card to be moved must be 1 below the bottom card of the column to be moved to")
+            
+    return (False, "")
+
 def gameOver():
     if nCompletedUnits == nTotalUnits:
         return True
@@ -195,51 +252,8 @@ while not gameOver():
     elif coordFrom == ['x']:
         print("Player gave up")
         break
-    # condition checking starts here
-    # see error messages for what the conditions are
-    # FIX: better/more readable way for this? pretty diff to check if-else pairs
-    elif len(coordFrom) == 2:
-        if int(coordFrom[0]) - 1 in [num for num in range(nTotalColumns)]:
-            nMaxRow = len(t_columns[int(coordFrom[0]) - 1])
-            if int(coordFrom[1]) - 1 in [num for num in range(nMaxRow)]:
-                # we transform the inputs into numerical values here for easier use further on
-                coordFrom = [int(c) - 1 for c in coordFrom]
-                if not t_columns[coordFrom[0]][coordFrom[1]].hidden:
-                    if int(coordTo) - 1 in [num for num in range(nTotalColumns)]:
-                        coordTo = int(coordTo) - 1
-                        bSameSuit = True
-                        for i in range(coordFrom[1], len(t_columns[coordFrom[0]])):
-                            if t_columns[coordFrom[0]][i].suit != t_columns[coordFrom[0]][coordFrom[1]].suit:
-                                bSameSuit = False
-                                break
-
-                        if bSameSuit:
-                            bInOrder = True
-                            if coordFrom[1] < nMaxRow - 1: # aka we're moving a series of cards, not just one
-                                for i in range(coordFrom[1], len(t_columns[coordFrom[0]]) - 1):
-                                    if t_columns[coordFrom[0]][i].rank - 1 != t_columns[coordFrom[0]][i + 1].rank:
-                                        bInOrder = False
-                                        break
-                            
-                            if bInOrder:
-                                if len(t_columns[coordTo]) == 0 or t_columns[coordFrom[0]][coordFrom[1]].rank + 1 == t_columns[coordTo][-1].rank:
-                                    b_s.clear_error()
-                                else:
-                                    b_s.signal_error("The rank of the topmost card to be moved must be 1 below the bottom card of the column to be moved to")
-                            else:
-                                b_s.signal_error("Card(s) to move must be in direct descending order")
-                        else:
-                            b_s.signal_error("Card(s) to move must all be of the same suit")
-                    else:
-                        b_s.signal_error("Column to move to must be a number between 1 and {}".format(nTotalColumns))
-                else:
-                    b_s.signal_error("Card(s) to move must not be hidden")
-            else:
-                b_s.signal_error("Card/row to move from must be a number between 1 and respective column's length: {}".format(nMaxRow))
-        else:
-            b_s.signal_error("Column to move from must be a number between 1 and {}".format(nTotalColumns + 1))
-    else:
-        b_s.signal_error("There must be two inputs - column and row")
+    else: # we check if the inputs are alright
+        (b_s.bIsError, b_s.msg) = isInputError(coordFrom, coordTo)
 
     if not b_s.bIsError and not bUsedDeal:
         # moving the card(s)
