@@ -176,7 +176,7 @@ def isInputError(coordFrom, coordTo):
         return (True, "Card(s) to move must all be of the same suit")
 
     bInOrder = True
-    if coordFrom[1] < nMaxRow - 1: # aka we're moving a series of cards, not just one
+    if coordFrom[1] < nColLength - 1: # aka we're moving a series of cards, not just one
         for i in range(coordFrom[1], len(t_columns[coordFrom[0]]) - 1):
             if t_columns[coordFrom[0]][i].rank - 1 != t_columns[coordFrom[0]][i + 1].rank:
                 bInOrder = False
@@ -247,6 +247,10 @@ while not gameOver():
         break
     else: # we check if the inputs are alright
         (b_s.bIsError, b_s.msg) = isInputError(coordFrom, coordTo)
+
+    # transforming inputs into numerical values
+    coordFrom = [int(c) - 1 for c in coordFrom]
+    coordTo = int(coordTo) - 1
 
     if not b_s.bIsError and not bUsedDeal:
         # moving the card(s)
