@@ -248,9 +248,10 @@ while not gameOver():
     else: # we check if the inputs are alright
         (b_s.bIsError, b_s.msg) = isInputError(coordFrom, coordTo)
 
-    # transforming inputs into numerical values
-    coordFrom = [int(c) - 1 for c in coordFrom]
-    coordTo = int(coordTo) - 1
+    if not bUsedDeal:
+        # transforming inputs into numerical values
+        coordFrom = [int(c) - 1 for c in coordFrom]
+        coordTo = int(coordTo) - 1
 
     if not b_s.bIsError and not bUsedDeal:
         # moving the card(s)
