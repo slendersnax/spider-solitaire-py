@@ -73,8 +73,8 @@ def display():
             elif col[i].hidden:
                 row += t_colours[11] + "XX" + t_colours[10];
             else:
-                row += t_colours[col[i].suit] + t_suits[col[i].suit] + t_colours[10]
                 row += t_colours[12] + t_ranks[col[i].rank] + t_colours[10]
+                row += t_colours[col[i].suit] + t_suits[col[i].suit] + t_colours[10]
             row += " "
         row += " " + str(i + 1)
         print(row)
@@ -144,10 +144,14 @@ def revealBottomCards(p_columns):
 
 # check the error messages for what we're checking in each condition
 def isInputError(coordFrom, coordTo):
-    nColLength = len(t_columns[int(coordFrom[0]) - 1])
+    for el in coordFrom:
+        if el == '':
+            return (True, "Please enter the coordinates of the card(s) you wish to move")
 
     if len(coordFrom) != 2:
         return (True, "There must be two inputs - column and row")
+
+    nColLength = len(t_columns[int(coordFrom[0]) - 1])
 
     if int(coordFrom[0]) - 1 not in [num for num in range(nTotalColumns)]:
         return (True, "Column to move from must be a number between 1 and {}".format(nTotalColumns + 1))
@@ -160,6 +164,9 @@ def isInputError(coordFrom, coordTo):
                 
     if t_columns[coordFrom[0]][coordFrom[1]].hidden:
         return (True, "Card(s) to move must not be hidden")
+
+    if coordTo == '':
+        return (True, "Please enter the coordinates of the destination")
 
     if int(coordTo) - 1 not in [num for num in range(nTotalColumns)]:
         return(True, "Column to move to must be a number between 1 and {}".format(nTotalColumns))
@@ -248,12 +255,11 @@ while not gameOver():
     else: # we check if the inputs are alright
         (b_s.bIsError, b_s.msg) = isInputError(coordFrom, coordTo)
 
-    if not bUsedDeal:
+    if not b_s.bIsError and not bUsedDeal:
         # transforming inputs into numerical values
         coordFrom = [int(c) - 1 for c in coordFrom]
         coordTo = int(coordTo) - 1
 
-    if not b_s.bIsError and not bUsedDeal:
         # moving the card(s)
         for i in range(coordFrom[1], len(t_columns[coordFrom[0]])):
             t_columns[coordTo].append(t_columns[coordFrom[0]].pop(coordFrom[1]))
