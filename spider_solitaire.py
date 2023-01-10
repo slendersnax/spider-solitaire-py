@@ -147,6 +147,8 @@ def isInputError(coordFrom, coordTo):
     for el in coordFrom:
         if el == '':
             return (True, "Please enter the coordinates of the card(s) you wish to move")
+        if not el.isnumeric():
+            return (True, "Please enter only numeric values for coordinates")
 
     if len(coordFrom) != 2:
         return (True, "There must be two inputs - column and row")
@@ -167,6 +169,9 @@ def isInputError(coordFrom, coordTo):
 
     if coordTo == '':
         return (True, "Please enter the coordinates of the destination")
+
+    if not coordTo.isnumeric():
+        return (True, "Please enter only numeric values for the coordinates of the destination")
 
     if int(coordTo) - 1 not in [num for num in range(nTotalColumns)]:
         return(True, "Column to move to must be a number between 1 and {}".format(nTotalColumns))
@@ -272,7 +277,7 @@ while not gameOver():
             if not col[i].hidden and col[i].suit == col[i + 1].suit and col[i].rank - 1 == col[i + 1].rank:
                 nSeriesLen += 1
             else:
-                nSeriesLen = 0
+                nSeriesLen = 1
 
         # we have a completed unit
         if nSeriesLen == len(t_ranks):
