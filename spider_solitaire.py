@@ -28,7 +28,7 @@ class Error:
 # -------------------------------------------------------------------------
 # global vars
 
-t_suits = ["H", "S", "D", "C"]
+t_suits = ["H", "S", "D", "C"] # Hearts, Spades, Diamonds, Clubs
 t_ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K"] # note: i put T instead of 10 because I want every card to be displayed as [SR] (SuitRank)
 t_colours = {
     0 : "\033[31m", # red
@@ -240,6 +240,9 @@ while not gameOver():
             print("No more deals")
         bUsedDeal = False
 
+    print("Insert a single 'd' to use a deal, or a single 'x' to quit.")
+    print("The T card stands for 'ten'; H = Hearts, S = Spades, D = Diamonds, C = Clubs")
+    print("When two numbers are needed separate them with spaces\n")
     coordFrom = [c for c in input("Input col, row to move from: ").strip().split(" ")]
     coordTo = input("Input column to move to: ")
     b_s.signal_error("") # automatically error is TRUE, if we pass all the checks, error becomes FALSE
