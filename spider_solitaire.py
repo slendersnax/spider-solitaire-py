@@ -45,7 +45,7 @@ nTotalColumns = 10
 nTotalDeals = 4
 
 t_columns = []
-t_deals = []     # the decks usually in the bottom right corner
+t_deals = []     # the decks usually in the bottom right corner in GUI games
 t_allCards = []  # where every card is before we sort them into decks
 
 # -------------------------------------------------------------------------
@@ -80,10 +80,13 @@ def display():
         print(row)
 
     print("")
-    print("Completed Units: {}".format(nCompletedUnits))
-    print("Deals: {}".format(nDeals))
-    # make instructions screen
-    # x to give up, d for deal
+    print("""
+Completed Units: {}
+Deals: {}"
+Insert a single 'd' to use a deal, or a single 'x' to quit.
+The T card stands for 'ten'; H = Hearts, S = Spades, D = Diamonds, C = Clubs
+When two numbers are needed separate them with spaces
+        """.format(nCompletedUnits, nDeals))
 
 # based on the number of suits chosen we run through them enough times
 # to get an equal amount of units of each available suit then generate cards
@@ -240,9 +243,6 @@ while not gameOver():
             print("No more deals")
         bUsedDeal = False
 
-    print("Insert a single 'd' to use a deal, or a single 'x' to quit.")
-    print("The T card stands for 'ten'; H = Hearts, S = Spades, D = Diamonds, C = Clubs")
-    print("When two numbers are needed separate them with spaces\n")
     coordFrom = [c for c in input("Input col, row to move from: ").strip().split(" ")]
     coordTo = input("Input column to move to: ")
     b_s.signal_error("") # automatically error is TRUE, if we pass all the checks, error becomes FALSE
