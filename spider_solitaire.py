@@ -82,7 +82,7 @@ def display():
     print("")
     print("""
 Completed Units: {}
-Deals: {}"
+Deals: {}
 Insert a single 'd' to use a deal, or a single 'x' to quit.
 The T card stands for 'ten'; H = Hearts, S = Spades, D = Diamonds, C = Clubs
 When two numbers are needed separate them with spaces
